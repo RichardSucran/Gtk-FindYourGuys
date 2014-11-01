@@ -14,6 +14,8 @@ static GtkWidget *box2;
 static GtkWidget *box3;
 static GtkWidget *box4;
 static GtkWidget *box5;
+static GtkWidget *box6;
+static GtkWidget *box7;
 static GtkWidget* entry1;
 static GtkWidget* entry2;
 static GtkWidget* entry3;
@@ -24,6 +26,7 @@ int INSERT=0;
 int ALTER=0;
 int DELETE=0;
 int FIND=0;
+//子界面控件初始化
 void Widget_init()
 {
 	GtkWidget* label1;
@@ -81,6 +84,7 @@ void Widget_init()
 	label5 = gtk_label_new("欢迎使用收集器");
 	gtk_box_pack_start(GTK_BOX(box5),label5,FALSE,FALSE,5);
 }
+//子界面控件隐藏
 void Widget_hide()
 {
 	gtk_widget_hide_all(box1);
@@ -89,6 +93,7 @@ void Widget_hide()
 	gtk_widget_hide_all(box4);
 	gtk_widget_hide_all(box5);
 }
+//菜单栏图标监听函数
 void on_insert_button_clicked()
 {
 	gtk_label_set_text(GTK_LABEL(label5),"请输入新同学的联系方式");
@@ -131,6 +136,7 @@ void on_find_button_clicked()
 		FIND=1;DELETE=0;INSERT=0;ALTER=0;
 	}
 }
+//主界面实现
 GtkWidget* create_control()
 {
 	//主操作界面设置
@@ -173,6 +179,7 @@ GtkWidget* create_control()
 	gtk_toolbar_set_icon_size(GTK_TOOLBAR(toolbar),GTK_ICON_SIZE_SMALL_TOOLBAR);
 	return control_table;
 }
+//主界面的控件显示
 void show_choose ()
 {
 	control_window = create_control();
@@ -202,6 +209,7 @@ void  on_button_clicked  (GtkWidget* button,gpointer data)
 		gtk_label_set_text(GTK_LABEL(blabel),"用户名或密码错误，请重新输入");
 	}
 }
+//登陆界面的实现
 int main(int argc, char* argv[])
 {
 	//登陆窗体的设置和初始化
