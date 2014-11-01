@@ -22,10 +22,16 @@ static GtkWidget* entry3;
 static GtkWidget* entry4;
 static GtkWidget* label5;
 static GtkWidget *toolbar;
+static GtkWidget *text;
+static GtkWidget *comfirm_button;
+GtkTextBuffer *buffer;
 int INSERT=0;
 int ALTER=0;
 int DELETE=0;
 int FIND=0;
+//确认按钮的监听函数
+void on_comfirm_button_clicked()
+{}
 //子界面控件初始化
 void Widget_init()
 {
@@ -45,9 +51,14 @@ void Widget_init()
 	gtk_box_pack_start(GTK_BOX(bigbox),box4,FALSE,FALSE,5);
 	box5 = gtk_hbox_new(FALSE,0);
 	gtk_box_pack_start(GTK_BOX(bigbox),box5,FALSE,FALSE,5);
+	box7 = gtk_hbox_new(FALSE,0);
+	gtk_box_pack_start(GTK_BOX(bigbox),box7,FALSE,FALSE,5);
 	//创建1个横向分隔线，并添加到纵向的盒子中
 	sep = gtk_hseparator_new();
 	gtk_box_pack_start(GTK_BOX(bigbox),sep,FALSE,FALSE,5);
+	//创建一个包含textview的盒子
+	box6 = gtk_hbox_new(FALSE,0);
+	gtk_box_pack_start(GTK_BOX(bigbox),box6,FALSE,FALSE,5);
 	//创建一个“姓名”标签
 	label1 = gtk_label_new("姓名:");
 	//创建一个输入框
@@ -83,6 +94,14 @@ void Widget_init()
 	//创建一个“TEL”标签
 	label5 = gtk_label_new("欢迎使用收集器");
 	gtk_box_pack_start(GTK_BOX(box5),label5,FALSE,FALSE,5);
+	//创建一个textview
+	text = gtk_text_view_new();
+	gtk_box_pack_start(GTK_BOX(box6),text,TRUE,TRUE,5);
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
+	//创建确认按钮
+	comfirm_button = gtk_button_new_with_label("确认");
+	g_signal_connect(G_OBJECT(comfirm_button),"clicked",G_CALLBACK(on_comfirm_button_clicked),NULL);
+	gtk_box_pack_start(GTK_BOX(box7),comfirm_button,TRUE,TRUE,5);
 }
 //子界面控件隐藏
 void Widget_hide()
@@ -191,21 +210,15 @@ void  on_button_clicked  (GtkWidget* button,gpointer data)
 {
 	const gchar *username = gtk_entry_get_text(GTK_ENTRY(entry1));
 	const gchar *password = gtk_entry_get_text(GTK_ENTRY(entry2));
-	g_print("用户名是：%s ",username);
-	g_print("\n");
-	g_print("密码是：%s ",password);
-	g_print("\n");
-	const gchar *un="xjl";
+	const gchar *un="scr";
 	const gchar *pw="123";
 	if(strcmp(username,un) == 0 && strcmp(password,pw) == 0)
 	{
-		g_print("right  \n");
 		gtk_label_set_text(GTK_LABEL(blabel),"验证成功");
 		show_choose () ;
 	}
 	else
 	{
-		g_print("again  \n");
 		gtk_label_set_text(GTK_LABEL(blabel),"用户名或密码错误，请重新输入");
 	}
 }
