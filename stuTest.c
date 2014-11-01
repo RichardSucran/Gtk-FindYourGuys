@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define ARFILE "./usr.ar"//指定档案文件的路径名称
+#define ARFILE "./usr.txt"//指定档案文件的路径名称
 static GtkWidget* entry1;
 static GtkWidget* entry2;
 static GtkWidget *blabel = NULL;//定义提示信息条
@@ -29,9 +29,122 @@ int INSERT=0;
 int ALTER=0;
 int DELETE=0;
 int FIND=0;
+struct contact
+{
+	char name[30];
+	char number[20];
+	char qq[12];
+	char tel[15];
+};
 //确认按钮的监听函数
 void on_comfirm_button_clicked()
-{}
+{
+	const gchar *name = gtk_entry_get_text(GTK_ENTRY(entry1));
+	const gchar *number = gtk_entry_get_text(GTK_ENTRY(entry2));
+	const gchar *qq = gtk_entry_get_text(GTK_ENTRY(entry3));
+	const gchar *tel = gtk_entry_get_text(GTK_ENTRY(entry4));
+	struct contact coninfo;
+	FILE *fp;
+	int found;
+	gchar query_buf[1024];
+	memset(query_buf,'\0',sizeof(query_buf));
+	GtkTextIter iter;
+	FILE *fpn;
+	if(INSERT)
+	{
+		//g_print("INSERt....");
+		if((fp = fopen(ARFILE,"a")) == NULL)
+		{
+			return;
+		}
+		memset(&coninfo,0x00,sizeof(coninfo));
+		strncpy(coninfo.name,name,30);
+		strncpy(coninfo.number,number,20);
+		strncpy(coninfo.qq,qq,12);
+		strncpy(coninfo.tel,tel,15);
+		if(fwrite(&coninfo,sizeof(coninfo),1,fp) < 0)
+		{
+			perror("fwrite");
+			fclose(fp);
+			return;
+		}
+		fclose(fp);
+		gtk_label_set_text(GTK_LABEL(label5),"添加成功");
+	}
+	if(ALTER)
+	{
+		g_print("ALTER......");
+	}
+	if(DELETE)
+	{
+		//g_print("DELETE......");
+		if((fpn = fopen("./tmpfile","w")) == NULL)
+		{
+			return;
+		}
+		if((fp = fopen(ARFILE,"r")) == NULL)
+		{
+			return;
+		}
+		memset(&coninfo,0x00,sizeof(coninfo));//清空结构
+		while(fread(&coninfo,sizeof(coninfo),1,fp) == 1)//循环复制，与输入姓名相匹配的不复制
+		{
+			if(strcmp(name,coninfo.name) != 0)
+			{
+				fwrite(&coninfo,sizeof(coninfo),1,fpn);//不相同，则复制
+			}
+			memset(&coninfo,0x00,sizeof(coninfo));
+		}
+		fclose(fp);
+		fclose(fpn);
+		remove(ARFILE);//删除原档案文件
+		rename("./tmpfile",ARFILE);//复制好的新文件重命名为档案文件
+		gtk_text_buffer_get_end_iter(buffer,&iter);
+		gtk_text_buffer_insert(buffer,&iter,"名字为 ",-1);
+		gtk_text_buffer_get_end_iter(buffer,&iter);
+		gtk_text_buffer_insert(buffer,&iter,name,-1);
+		gtk_text_buffer_get_end_iter(buffer,&iter);
+		gtk_text_buffer_insert(buffer,&iter," 的此项数据已成功删除！",-1);
+		gtk_text_buffer_get_end_iter(buffer,&iter);
+		gtk_text_buffer_insert(buffer,&iter,"\n",-1);
+	}
+	if(FIND)
+	{
+		//g_print("FIND........");
+		if((fp = fopen(ARFILE,"r")) == NULL)
+		{
+			return;
+		}
+		memset(&coninfo,0x00,sizeof(coninfo));
+		found=0;
+		while(fread(&coninfo,sizeof(coninfo),1,fp) == 1)
+		{
+			if(strcmp(name,coninfo.name) == 0)
+			{
+				found=1;
+				break;
+			}
+			memset(&coninfo,0x00,sizeof(coninfo));
+		}
+		fclose(fp);
+		if(found)
+		{
+			sprintf(query_buf,"姓名：%s\n学号：%s\nQQ: %s\nTel: %s\n",
+					coninfo.name,coninfo.number,coninfo.qq,coninfo.tel);
+			gtk_text_buffer_get_end_iter(buffer,&iter);
+			gtk_text_buffer_insert(buffer,&iter,query_buf,-1);
+		}
+		else
+		{
+			gtk_text_buffer_get_end_iter(buffer,&iter);
+			gtk_text_buffer_insert(buffer,&iter,
+			"没有该名同学的资料",-1);
+		}
+ 
+		gtk_text_buffer_get_end_iter(buffer,&iter);
+		gtk_text_buffer_insert(buffer,&iter,"\n",-1);
+	}
+}
 //子界面控件初始化
 void Widget_init()
 {
@@ -203,7 +316,9 @@ void show_choose ()
 {
 	control_window = create_control();
 	Widget_init();
-	gtk_widget_show_all(control_window);
+	gtk_widget_show(toolbar);
+	gtk_widget_show(bigbox);
+	gtk_widget_show(control_window);
 }
 //用户名和密码验证
 void  on_button_clicked  (GtkWidget* button,gpointer data)
