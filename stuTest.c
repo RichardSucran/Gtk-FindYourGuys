@@ -299,6 +299,16 @@ GtkWidget* create_control()
 	GtkWidget *button3;
 	GtkWidget *find_image;
 	GtkWidget *button4;
+	GtkWidget *new_file_image;
+	GtkWidget *button5;
+	GtkWidget *open_alt_image;
+	GtkWidget *button6;
+	GtkWidget *birthday_image;
+	GtkWidget *button7;
+	new_file_image = gtk_image_new_from_file("./new_doc.png");
+	button5 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"新建","新建一个通讯录","Private",new_file_image,G_CALLBACK(on_insert_button_clicked),NULL);
+	open_alt_image = gtk_image_new_from_file("./open_alt.png");
+	button6 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"打开","打开一个通讯录","Private",open_alt_image,G_CALLBACK(on_insert_button_clicked),NULL);
 	insert_image = gtk_image_new_from_file("./plus_2.png");
 	button1 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"添加","添加一个学生的联系方式","Private",insert_image,G_CALLBACK(on_insert_button_clicked),NULL);
 	delete_image = gtk_image_new_from_file("./minus_2.png");
@@ -307,7 +317,8 @@ GtkWidget* create_control()
 	button3 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"修改","修改一个学生的联系方式","Private",alter_image,G_CALLBACK(on_alter_button_clicked),NULL);
 	find_image = gtk_image_new_from_file("./search_lense.png");
 	button4 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"查询","查询一个学生的联系方式","Private",find_image,G_CALLBACK(on_find_button_clicked),NULL);
-	
+	birthday_image = gtk_image_new_from_file("./cake.png");
+	button7 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"生日","谁在这个月生日","Private",birthday_image,G_CALLBACK(on_find_button_clicked),NULL);
 	//设定工具条中图标大小，GTK_ICON_SIZE_SMALL_TOOLBAR表示工具条中使用小图标
 	gtk_toolbar_set_icon_size(GTK_TOOLBAR(toolbar),GTK_ICON_SIZE_SMALL_TOOLBAR);
 	return control_table;
