@@ -47,8 +47,8 @@ void on_comfirm_button_clicked()
 	FILE *fp;
 	int found;
 	gchar query_buf[1024];
-	memset(query_buf,'\0',sizeof(query_buf));
 	GtkTextIter iter;
+	GtkTextIter start,end;
 	FILE *fpn;
 	if(INSERT)
 	{
@@ -127,6 +127,9 @@ void on_comfirm_button_clicked()
 			memset(&coninfo,0x00,sizeof(coninfo));
 		}
 		fclose(fp);
+		gtk_text_buffer_get_start_iter(buffer,&start);
+		gtk_text_buffer_get_end_iter(buffer,&end);
+		gtk_text_buffer_delete(buffer,&start,&end);//清除所有
 		if(found)
 		{
 			sprintf(query_buf,"姓名：%s\n学号：%s\nQQ: %s\nTel: %s\n",
@@ -277,7 +280,7 @@ GtkWidget* create_control()
 	g_signal_connect(G_OBJECT(control_table),"delete_event",G_CALLBACK(gtk_widget_destroy),control_table);
 	gtk_window_set_position(GTK_WINDOW(control_table),GTK_WIN_POS_CENTER);
 	gtk_container_set_border_width(GTK_CONTAINER(control_table),10);
-	gtk_window_set_default_size(GTK_WINDOW(control_table),200,400);
+	gtk_window_set_default_size(GTK_WINDOW(control_table),550,550);
 	
 	//创建盒子
 	bigbox = gtk_vbox_new(FALSE,0);
@@ -305,37 +308,18 @@ GtkWidget* create_control()
 	find_image = gtk_image_new_from_file("./search_lense.png");
 	button4 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"查询","查询一个学生的联系方式","Private",find_image,G_CALLBACK(on_find_button_clicked),NULL);
 	
-	//设定工具条的外观,GTK_TOOLBAR_ICONS表示只显示图标
-	gtk_toolbar_set_style(GTK_TOOLBAR(toolbar),GTK_TOOLBAR_ICONS);
 	//设定工具条中图标大小，GTK_ICON_SIZE_SMALL_TOOLBAR表示工具条中使用小图标
 	gtk_toolbar_set_icon_size(GTK_TOOLBAR(toolbar),GTK_ICON_SIZE_SMALL_TOOLBAR);
 	return control_table;
 }
-//主界面的控件显示
-void show_choose ()
+//主界面的显示
+void  on_button_clicked  (GtkWidget* button,gpointer data)
 {
 	control_window = create_control();
 	Widget_init();
 	gtk_widget_show(toolbar);
 	gtk_widget_show(bigbox);
 	gtk_widget_show(control_window);
-}
-//用户名和密码验证
-void  on_button_clicked  (GtkWidget* button,gpointer data)
-{
-	const gchar *username = gtk_entry_get_text(GTK_ENTRY(entry1));
-	const gchar *password = gtk_entry_get_text(GTK_ENTRY(entry2));
-	const gchar *un="scr";
-	const gchar *pw="123";
-	if(strcmp(username,un) == 0 && strcmp(password,pw) == 0)
-	{
-		gtk_label_set_text(GTK_LABEL(blabel),"验证成功");
-		show_choose () ;
-	}
-	else
-	{
-		gtk_label_set_text(GTK_LABEL(blabel),"用户名或密码错误，请重新输入");
-	}
 }
 //登陆界面的实现
 int main(int argc, char* argv[])
@@ -347,42 +331,30 @@ int main(int argc, char* argv[])
 	g_signal_connect(G_OBJECT(window),"destroy",G_CALLBACK(gtk_main_quit),NULL);
 	gtk_window_set_title(GTK_WINDOW(window),"登录窗口");
 	gtk_window_set_position(GTK_WINDOW(window),GTK_WIN_POS_CENTER);
-	gtk_window_set_default_size(GTK_WINDOW(window),200,100);
+	gtk_window_set_default_size(GTK_WINDOW(window),550,550);
 	gtk_container_set_border_width(GTK_CONTAINER(window),20);
 	//设置窗口布局
 	GtkWidget* box;
 	GtkWidget* box1;
-	GtkWidget* box2;
-	GtkWidget* sep;
+	GtkWidget* image;
+	GtkWidget* frame;
+	GtkWidget* label1;
 	box = gtk_vbox_new(FALSE,0);
 	gtk_container_add(GTK_CONTAINER(window),box);
 	box1 = gtk_hbox_new(FALSE,0);
 	gtk_box_pack_start(GTK_BOX(box),box1,FALSE,FALSE,5);
-	box2 = gtk_hbox_new(FALSE,0);
-	gtk_box_pack_start(GTK_BOX(box),box2,FALSE,FALSE,5);
-	sep = gtk_hseparator_new();
-	gtk_box_pack_start(GTK_BOX(box),sep,FALSE,FALSE,5);
-	//用户名和密码
-	GtkWidget* label1;
-	GtkWidget* label2;
-	label1 = gtk_label_new("用户名：");
-	entry1 = gtk_entry_new();
-	gtk_box_pack_start(GTK_BOX(box1),label1,FALSE,FALSE,5);
-	gtk_box_pack_start(GTK_BOX(box1),entry1,FALSE,FALSE,5);
-	label2 = gtk_label_new("密码：     ");
-	entry2 = gtk_entry_new();
-	gtk_entry_set_visibility(GTK_ENTRY(entry2),FALSE);
-	gtk_box_pack_start(GTK_BOX(box2),label2,FALSE,FALSE,5);
-	gtk_box_pack_start(GTK_BOX(box2),entry2,FALSE,FALSE,5);
-	//添加提示信息
-	GtkWidget  *viewport;
-	viewport = gtk_viewport_new(NULL,NULL);
-	gtk_box_pack_start(GTK_BOX(box),viewport,FALSE,FALSE,5);
-	blabel = gtk_label_new(NULL);
-	gtk_container_add(GTK_CONTAINER(viewport),blabel);
+	//添加图片布局
+	image = gtk_image_new_from_file("封面.png");
+	gtk_container_add(GTK_CONTAINER(box1),image);
+	//添加文字布局
+	frame = gtk_frame_new("联系方式录入器");
+	label1 = gtk_label_new("每一次告别，最好用力一点。\n多说一句，可能是最后一句。\n多看一眼，可能是最后一眼。\n ——韩寒\n");
+	gtk_container_add(GTK_CONTAINER(frame),label1);
+	gtk_label_set_justify(GTK_LABEL(label1),GTK_JUSTIFY_RIGHT);
+	gtk_box_pack_start(GTK_BOX(box),frame,FALSE,FALSE,5);
 	//添加确认按钮
 	GtkWidget* button;
-	button = gtk_button_new_with_label("确认");
+	button = gtk_button_new_with_label("开始录入，不忘联系");
 	g_signal_connect(G_OBJECT(button),"clicked",G_CALLBACK(on_button_clicked),NULL);
 	gtk_box_pack_start(GTK_BOX(box),button,FALSE,FALSE,5);
 	gtk_widget_show_all(window);
