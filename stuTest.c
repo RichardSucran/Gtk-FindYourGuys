@@ -104,7 +104,45 @@ void on_comfirm_button_clicked()
 	}
 	if(ALTER)
 	{
-		g_print("ALTER......");
+		//g_print("ALTER......");
+		found = 0;
+		if((fpn = fopen("./tmpfile","w")) == NULL)
+		{
+			return;
+		}
+		if((fp = fopen(filename,"r")) == NULL)
+		{
+			return;
+		}
+		memset(&coninfo,0x00,sizeof(coninfo));//清空结构
+    
+		while(fread(&coninfo,sizeof(coninfo),1,fp) == 1)//循环复制，与输入姓名相匹配的不复制
+		{
+			if(strcmp(name,coninfo.name) == 0)//相同则修改
+			{
+				found =1;
+				if(strcmp(coninfo.number,"") != 0)
+					strcpy(coninfo.number,number);
+				if(strcmp(coninfo.qq,"") != 0)
+					strcpy(coninfo.qq,qq);
+				if(strcmp(coninfo.tel,"") != 0)
+					strcpy(coninfo.tel,tel);
+				if(coninfo.month != month)
+					coninfo.month = month;
+				if(coninfo.day != day)
+					coninfo.day = day;
+			}
+			fwrite(&coninfo,sizeof(coninfo),1,fpn);
+			memset(&coninfo,0x00,sizeof(coninfo));
+		}
+		fclose(fp);
+		fclose(fpn);
+		remove(filename);//删除原档案文件
+		rename("./tmpfile",filename);//复制好的新文件重命名为档案文件
+		if(found)
+			gtk_label_set_text(GTK_LABEL(label5),"修改成功");
+		else
+			gtk_label_set_text(GTK_LABEL(label5),"没有找到该同学的联系方式");
 	}
 	if(DELETE)
 	{
@@ -130,14 +168,7 @@ void on_comfirm_button_clicked()
 		fclose(fpn);
 		remove(filename);//删除原档案文件
 		rename("./tmpfile",filename);//复制好的新文件重命名为档案文件
-		gtk_text_buffer_get_end_iter(buffer,&iter);
-		gtk_text_buffer_insert(buffer,&iter,"名字为 ",-1);
-		gtk_text_buffer_get_end_iter(buffer,&iter);
-		gtk_text_buffer_insert(buffer,&iter,name,-1);
-		gtk_text_buffer_get_end_iter(buffer,&iter);
-		gtk_text_buffer_insert(buffer,&iter," 的此项数据已成功删除！",-1);
-		gtk_text_buffer_get_end_iter(buffer,&iter);
-		gtk_text_buffer_insert(buffer,&iter,"\n",-1);
+		gtk_label_set_text(GTK_LABEL(label5),"删除成功");
 	}
 	if(FIND)
 	{
