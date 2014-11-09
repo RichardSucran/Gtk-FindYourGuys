@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-const gchar * filename;//路径或文件名
+const gchar * filename = "./FindYourGuys.ar";//路径或文件名
 //主界面
 static GtkWidget* control_window;
 static GtkWidget *control_table;
@@ -23,6 +23,8 @@ static GtkWidget *box7;
 static GtkWidget *box8;
 //生日
 static GtkWidget *box9;
+//帮助界面的盒子
+static GtkWidget *box10;
 //姓名/学号/QQ/TEL的输入
 static GtkWidget* entry1;
 static GtkWidget* entry2;
@@ -49,6 +51,10 @@ int ALTER=0;
 int DELETE=0;
 int FIND=0;
 int NEW=0;
+int HELP=0;
+//帮助子界面的几个frame和label
+GtkWidget *frame1,*frame2,*frame3,*frame4;
+GtkWidget *labelx,*labely,*labelz;
 //一个联系方式的数据结构体
 struct contact
 {
@@ -225,6 +231,8 @@ void Widget_init()
 	//创建横向盒
 	box5 = gtk_hbox_new(FALSE,0);
 	gtk_box_pack_start(GTK_BOX(bigbox),box5,FALSE,TRUE,5);
+	box10 = gtk_vbox_new(FALSE,0);
+	gtk_box_pack_start(GTK_BOX(bigbox),box10,FALSE,TRUE,5);
 	box1 = gtk_hbox_new(FALSE,0);
 	gtk_box_pack_start(GTK_BOX(bigbox),box1,FALSE,TRUE,5);
 	box2 = gtk_hbox_new(FALSE,0);
@@ -306,6 +314,22 @@ void Widget_init()
 	gtk_box_pack_start(GTK_BOX(box9),label8,FALSE,FALSE,5);
 	gtk_box_pack_start(GTK_BOX(box9),d_spin,FALSE,FALSE,5);
 	gtk_box_pack_start(GTK_BOX(box9),label9,FALSE,FALSE,5);
+	//创建多个frame来写提示信息
+	frame1 = gtk_frame_new("操作说明");
+	labelx = gtk_label_new("1.第一次使用入录器，需要先按【新建】按钮，新建一个存储文件\n2.如果已有存储文件，按【打开】按钮，选择打开相应文件\n3.[注意]如果没有确保有存储文件，默认存储文件为FindYourGuys.ar\n");
+	gtk_container_add(GTK_CONTAINER(frame1),labelx);
+	gtk_label_set_justify(GTK_LABEL(labelx),GTK_JUSTIFY_LEFT);
+	gtk_box_pack_start(GTK_BOX(box10),frame1,FALSE,TRUE,5);
+	frame2 = gtk_frame_new("联系方式的规格说明");
+	labely = gtk_label_new("本录入器很遗憾没有添加检查错误的功能\n只能希望大家如实填写，姓名重名的删除时是一律删除的\n姓名最好通过标记来分辨性别和同名人\n如【张三|男|1】【张三|男|2】[张三|女】");
+	gtk_container_add(GTK_CONTAINER(frame2),labely);
+	gtk_label_set_justify(GTK_LABEL(labely),GTK_JUSTIFY_LEFT);
+	gtk_box_pack_start(GTK_BOX(box10),frame2,FALSE,TRUE,5);
+	frame3 = gtk_frame_new("作者 && 源码");
+	labelz = gtk_label_new("本作品开源，代码比较冗余，有待改进\ngithub，搜索FindYourGuys，即能搜索到\n作者：苏超然（Richard Sucran）");
+	gtk_container_add(GTK_CONTAINER(frame3),labelz);
+	gtk_label_set_justify(GTK_LABEL(labelz),GTK_JUSTIFY_CENTER);
+	gtk_box_pack_start(GTK_BOX(box10),frame3,FALSE,TRUE,5);
 	//创建确认按钮
 	comfirm_button = gtk_button_new_with_label("确认");
 	g_signal_connect(G_OBJECT(comfirm_button),"clicked",G_CALLBACK(on_comfirm_button_clicked),NULL);
@@ -322,6 +346,7 @@ void Widget_hide()
 	gtk_widget_hide_all(box6);
 	gtk_widget_hide_all(box8);
 	gtk_widget_hide_all(box9);
+	gtk_widget_hide_all(box10);
 }
 //文件选择函数
 void on_file_select_ok(GtkWidget * button,GtkFileSelection *fs)
@@ -357,7 +382,7 @@ void new_file_button_clicked()
 		gtk_widget_show_all(box5);
 		gtk_widget_show_all(box8);
 		gtk_widget_show_all(box7);
-		INSERT=0;DELETE=0;ALTER=0;FIND=0;NEW=1;
+		INSERT=0;DELETE=0;ALTER=0;FIND=0;NEW=1;HELP=0;
 	}
 }
 void open_file_button_clicked()
@@ -365,7 +390,7 @@ void open_file_button_clicked()
 	GtkWidget * dialog;
     
     //创建文件选择对话框
-    dialog = gtk_file_selection_new("请选择一个文件活目录：");
+    dialog = gtk_file_selection_new("请选择一个文件：");
     gtk_window_set_position(GTK_WINDOW(dialog),GTK_WIN_POS_CENTER);
     gtk_signal_connect(GTK_OBJECT(dialog),"destroy",
 	    GTK_SIGNAL_FUNC(gtk_widget_destroy),&dialog);
@@ -400,7 +425,7 @@ void on_insert_button_clicked()
 		gtk_widget_show_all(sep);
 		gtk_widget_show_all(box7);
 		gtk_widget_show_all(box9);
-		INSERT=1;DELETE=0;ALTER=0;FIND=0;NEW=0;
+		INSERT=1;DELETE=0;ALTER=0;FIND=0;NEW=0;HELP=0;
 	}
 }
 void on_alter_button_clicked()
@@ -416,7 +441,7 @@ void on_alter_button_clicked()
 		gtk_widget_show_all(box5);
 		gtk_widget_show_all(box7);
 		gtk_widget_show_all(box9);
-		NEW=0;ALTER=1;INSERT=0;DELETE=0;FIND=0;
+		NEW=0;ALTER=1;INSERT=0;DELETE=0;FIND=0;HELP=0;
 	}
 }
 void on_delete_button_clicked()
@@ -428,7 +453,7 @@ void on_delete_button_clicked()
 		gtk_widget_show_all(box1);
 		gtk_widget_show_all(box5);
 		gtk_widget_show_all(box7);
-		DELETE=1;INSERT=0;ALTER=0;FIND=0;NEW=0;
+		DELETE=1;INSERT=0;ALTER=0;FIND=0;NEW=0;HELP=0;
 	}
 }
 void on_find_button_clicked()
@@ -441,7 +466,18 @@ void on_find_button_clicked()
 		gtk_widget_show_all(box5);
 		gtk_widget_show_all(box7);
 		gtk_widget_show_all(box6);
-		FIND=1;DELETE=0;INSERT=0;ALTER=0;NEW=0;
+		FIND=1;DELETE=0;INSERT=0;ALTER=0;NEW=0;HELP=0;
+	}
+}
+void on_help_button_clicked()
+{
+	gtk_label_set_text(GTK_LABEL(label5),"请仔细查阅帮助信息");
+	while(!HELP)
+	{
+		Widget_hide();
+		gtk_widget_show_all(box5);
+		gtk_widget_show_all(box10);
+		FIND=0;DELETE=0;INSERT=0;ALTER=0;NEW=0;HELP=1;
 	}
 }
 //主界面实现
@@ -460,7 +496,10 @@ GtkWidget* create_control()
 	gtk_container_add(GTK_CONTAINER(control_table),bigbox);
 
 	//创建工具条
-	toolbar = gtk_toolbar_new( );
+	toolbar = gtk_toolbar_new ();
+	gtk_toolbar_set_orientation (GTK_TOOLBAR (toolbar), GTK_ORIENTATION_HORIZONTAL);
+	gtk_toolbar_set_style (GTK_TOOLBAR (toolbar), GTK_TOOLBAR_BOTH);
+	gtk_container_set_border_width (GTK_CONTAINER (toolbar), 5);
 	gtk_box_pack_start(GTK_BOX(bigbox),toolbar,FALSE,FALSE,0);
 	
 	//创建带图片的按钮
@@ -478,20 +517,73 @@ GtkWidget* create_control()
 	GtkWidget *button6;
 	GtkWidget *birthday_image;
 	GtkWidget *button7;
+	GtkWidget *help_image;
+	GtkWidget *button8;
+	//因为gtk_toolbar_set_space_size，gtk2.0不支持，为了实现空格，用最笨的方法添加了空白的label
+	GtkWidget *labela,*labelb,*labelc,*labeld,*labele,*labelf,*labelg,*labelh,*labeli,*labelj;
 	new_file_image = gtk_image_new_from_file("./new_doc.png");
 	button5 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"新建","新建一个通讯录","Private",new_file_image,G_CALLBACK(new_file_button_clicked),NULL);
+	//增加间距
+	labelc = gtk_label_new("   ");
+	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labelc,"This is just an space","Private");
+	gtk_widget_show(labelc);
+	//
 	open_alt_image = gtk_image_new_from_file("./open_alt.png");
 	button6 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"打开","打开一个通讯录","Private",open_alt_image,G_CALLBACK(open_file_button_clicked),NULL);
+	//增加间距
+	labelb = gtk_label_new("      ");
+	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labelb,"This is just an space","Private");
+	gtk_widget_show(labelb);
+	//
+	gtk_toolbar_append_space(GTK_TOOLBAR(toolbar));
+	//增加间距
+	labela = gtk_label_new("      ");
+	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labela,"This is just an space","Private");
+	gtk_widget_show(labela);
+	//
 	insert_image = gtk_image_new_from_file("./plus_2.png");
 	button1 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"添加","添加一个学生的联系方式","Private",insert_image,G_CALLBACK(on_insert_button_clicked),NULL);
+	//增加间距
+	labeld = gtk_label_new("   ");
+	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labeld,"This is just an space","Private");
+	gtk_widget_show(labeld);
+	//
 	delete_image = gtk_image_new_from_file("./minus_2.png");
 	button2 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"删除","删除一个学生的联系方式","Private",delete_image,G_CALLBACK(on_delete_button_clicked),NULL);
+	//增加间距
+	labele = gtk_label_new("   ");
+	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labele,"This is just an space","Private");
+	gtk_widget_show(labele);
+	//
 	alter_image = gtk_image_new_from_file("./pencil_edit.png");
 	button3 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"修改","修改一个学生的联系方式","Private",alter_image,G_CALLBACK(on_alter_button_clicked),NULL);
+	//增加间距
+	labelf = gtk_label_new("   ");
+	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labelf,"This is just an space","Private");
+	gtk_widget_show(labelf);
+	//
 	find_image = gtk_image_new_from_file("./search_lense.png");
 	button4 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"查询","查询一个学生的联系方式","Private",find_image,G_CALLBACK(on_find_button_clicked),NULL);
+	//增加间距
+	labelh = gtk_label_new("      ");
+	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labelh,"This is just an space","Private");
+	gtk_widget_show(labelh);
+	//
+	gtk_toolbar_append_space(GTK_TOOLBAR(toolbar));
+	//增加间距
+	labeli = gtk_label_new("      ");
+	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labeli,"This is just an space","Private");
+	gtk_widget_show(labeli);
+	//
 	birthday_image = gtk_image_new_from_file("./cake.png");
 	button7 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"生日","谁在这个月生日","Private",birthday_image,G_CALLBACK(on_find_button_clicked),NULL);
+	//增加间距
+	labelj = gtk_label_new("   ");
+	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labelj,"This is just an space","Private");
+	gtk_widget_show(labelj);
+	//
+	help_image = gtk_image_new_from_file("./help.png");
+	button7 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"求助","遇到操作问题点这个","Private",help_image,G_CALLBACK(on_help_button_clicked),NULL);
 	//设定工具条中图标大小，GTK_ICON_SIZE_SMALL_TOOLBAR表示工具条中使用小图标
 	gtk_toolbar_set_icon_size(GTK_TOOLBAR(toolbar),GTK_ICON_SIZE_SMALL_TOOLBAR);
 	return control_table;
@@ -501,6 +593,7 @@ void  on_button_clicked  (GtkWidget* button,gpointer data)
 {
 	control_window = create_control();
 	Widget_init();
+	gtk_widget_show_all(box10);
 	gtk_widget_show(toolbar);
 	gtk_widget_show(bigbox);
 	gtk_widget_show(control_window);
