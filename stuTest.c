@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 const gchar * filename = "./FindYourGuys.ar";//路径或文件名
 //主界面
 static GtkWidget* control_window;
@@ -55,6 +56,9 @@ int HELP=0;
 //帮助子界面的几个frame和label
 GtkWidget *frame1,*frame2,*frame3,*frame4;
 GtkWidget *labelx,*labely,*labelz;
+//获取当前系统时间
+time_t ti;
+struct tm* timeinfo;
 //一个联系方式的数据结构体
 struct contact
 {
@@ -65,6 +69,32 @@ struct contact
 	gdouble month;
 	gdouble day;
 };
+struct contact coninfo;//单个读取
+struct contact infoset[300];//查找操作结果集
+struct contact all_coninfo[1000];//本文件里面所有的联系方式
+int load_data()
+{
+	int i=0;
+	FILE *fp;
+	if((fp = fopen(filename,"r")) == NULL)
+	{
+		return;
+	}
+	memset(&coninfo,0x00,sizeof(coninfo));
+	while(fread(&coninfo,sizeof(coninfo),1,fp) == 1)
+	{
+		strcpy(all_coninfo[i].name,coninfo.name);
+		strcpy(all_coninfo[i].number,coninfo.number);
+		strcpy(all_coninfo[i].qq,coninfo.qq);
+		strcpy(all_coninfo[i].tel,coninfo.tel);
+		all_coninfo[i].month=coninfo.month;
+		all_coninfo[i].day=coninfo.day;
+		i++;
+		memset(&coninfo,0x00,sizeof(coninfo));
+	}
+	fclose(fp);
+	return i;
+}
 //确认按钮的监听函数
 void on_comfirm_button_clicked()
 {
@@ -74,13 +104,13 @@ void on_comfirm_button_clicked()
 	const gchar *number = gtk_entry_get_text(GTK_ENTRY(entry2));
 	const gchar *qq = gtk_entry_get_text(GTK_ENTRY(entry3));
 	const gchar *tel = gtk_entry_get_text(GTK_ENTRY(entry4));
-	struct contact coninfo;
 	FILE *fp;
 	int found;
 	gchar query_buf[1024];
 	GtkTextIter iter;
 	GtkTextIter start,end;
 	FILE *fpn;
+	int i=0,h;
 	if(NEW)
 	{
 		filename = gtk_entry_get_text(GTK_ENTRY(entry5));
@@ -107,6 +137,19 @@ void on_comfirm_button_clicked()
 		}
 		fclose(fp);
 		gtk_label_set_text(GTK_LABEL(label5),"添加成功");
+		int j = load_data();
+		gtk_text_buffer_get_start_iter(buffer,&start);
+		gtk_text_buffer_get_end_iter(buffer,&end);
+		gtk_text_buffer_delete(buffer,&start,&end);//清除所有
+		for(h=1;h<j+1;h++)
+		{
+			if(strcmp(all_coninfo[h].name,"") > 0)
+				sprintf(query_buf,"姓名：%s\t\t",all_coninfo[h].name);
+			if(h % 5 == 0)
+				strcat(query_buf,"\n");
+			gtk_text_buffer_get_end_iter(buffer,&iter);
+			gtk_text_buffer_insert(buffer,&iter,query_buf,-1);
+		}
 	}
 	if(ALTER)
 	{
@@ -175,6 +218,19 @@ void on_comfirm_button_clicked()
 		remove(filename);//删除原档案文件
 		rename("./tmpfile",filename);//复制好的新文件重命名为档案文件
 		gtk_label_set_text(GTK_LABEL(label5),"删除成功");
+		int j = load_data();
+		gtk_text_buffer_get_start_iter(buffer,&start);
+		gtk_text_buffer_get_end_iter(buffer,&end);
+		gtk_text_buffer_delete(buffer,&start,&end);//清除所有
+		for(h=1;h<j+1;h++)
+		{
+			if(strcmp(all_coninfo[h].name,"") > 0)
+				sprintf(query_buf,"姓名：%s\t\t",all_coninfo[h].name);
+			if(h % 5 == 0)
+				strcat(query_buf,"\n");
+			gtk_text_buffer_get_end_iter(buffer,&iter);
+			gtk_text_buffer_insert(buffer,&iter,query_buf,-1);
+		}
 	}
 	if(FIND)
 	{
@@ -190,7 +246,13 @@ void on_comfirm_button_clicked()
 			if(strcmp(name,coninfo.name) == 0)
 			{
 				found=1;
-				break;
+				strcpy(infoset[i].name,coninfo.name);
+				strcpy(infoset[i].number,coninfo.number);
+				strcpy(infoset[i].qq,coninfo.qq);
+				strcpy(infoset[i].tel,coninfo.tel);
+				infoset[i].month=coninfo.month;
+				infoset[i].day=coninfo.day;
+				i++;
 			}
 			memset(&coninfo,0x00,sizeof(coninfo));
 		}
@@ -198,14 +260,14 @@ void on_comfirm_button_clicked()
 		gtk_text_buffer_get_start_iter(buffer,&start);
 		gtk_text_buffer_get_end_iter(buffer,&end);
 		gtk_text_buffer_delete(buffer,&start,&end);//清除所有
-		if(found)
+		while(found && i--)
 		{
-			sprintf(query_buf,"姓名：%s\n学号：%s\nQQ: %s\nTel: %s\n生日： %d月%d日",
-					coninfo.name,coninfo.number,coninfo.qq,coninfo.tel,(int)coninfo.month,(int)coninfo.day);
+			sprintf(query_buf,"姓名：%s\t学号：%s\tQQ: %s\tTel: %s\t生日： %d月%d日 \n",
+					infoset[i].name,infoset[i].number,infoset[i].qq,infoset[i].tel,(int)infoset[i].month,(int)infoset[i].day);
 			gtk_text_buffer_get_end_iter(buffer,&iter);
 			gtk_text_buffer_insert(buffer,&iter,query_buf,-1);
 		}
-		else
+		if(!found)
 		{
 			gtk_text_buffer_get_end_iter(buffer,&iter);
 			gtk_text_buffer_insert(buffer,&iter,
@@ -425,6 +487,7 @@ void on_insert_button_clicked()
 		gtk_widget_show_all(sep);
 		gtk_widget_show_all(box7);
 		gtk_widget_show_all(box9);
+		gtk_widget_show_all(box6);
 		INSERT=1;DELETE=0;ALTER=0;FIND=0;NEW=0;HELP=0;
 	}
 }
@@ -453,6 +516,7 @@ void on_delete_button_clicked()
 		gtk_widget_show_all(box1);
 		gtk_widget_show_all(box5);
 		gtk_widget_show_all(box7);
+		gtk_widget_show_all(box6);
 		DELETE=1;INSERT=0;ALTER=0;FIND=0;NEW=0;HELP=0;
 	}
 }
@@ -469,12 +533,46 @@ void on_find_button_clicked()
 		FIND=1;DELETE=0;INSERT=0;ALTER=0;NEW=0;HELP=0;
 	}
 }
+void on_birthday_button_clicked()
+{
+	int found =0;
+	GtkWidget * dialog;	//对话框
+	gchar message[1024];
+	gchar buffer[1024]="这个月：";
+	int i = load_data();
+	srand((unsigned)time(&ti));
+	timeinfo = localtime(&ti);
+	//g_print("zhege :%d\n",timeinfo->tm_mon +1);
+	while(i--)
+	{
+		if(all_coninfo[i].month == timeinfo->tm_mon +1)
+		{
+			found=1;
+			strcat(buffer,strcat(all_coninfo[i].name,"   "));
+		}
+	}
+	if(!found)
+		strcpy(message,"没有找到");
+	else
+		strcpy(message,buffer);
+		strcat(message,"生日！");
+	dialog = gtk_message_dialog_new(NULL,
+	    GTK_DIALOG_DESTROY_WITH_PARENT,
+	    GTK_MESSAGE_INFO,
+	    GTK_BUTTONS_OK,
+	    message,
+	    NULL);
+	gtk_widget_show_all(dialog);
+    gtk_dialog_run(GTK_DIALOG(dialog));	//显示dialog对话框并等待按钮,在有按钮按下之后继续
+    gtk_widget_destroy(dialog);			//销毁dialog对话框
+}
 void on_help_button_clicked()
 {
 	gtk_label_set_text(GTK_LABEL(label5),"请仔细查阅帮助信息");
 	while(!HELP)
 	{
 		Widget_hide();
+		gtk_widget_hide_all(box7);
 		gtk_widget_show_all(box5);
 		gtk_widget_show_all(box10);
 		FIND=0;DELETE=0;INSERT=0;ALTER=0;NEW=0;HELP=1;
@@ -576,7 +674,7 @@ GtkWidget* create_control()
 	gtk_widget_show(labeli);
 	//
 	birthday_image = gtk_image_new_from_file("./cake.png");
-	button7 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"生日","谁在这个月生日","Private",birthday_image,G_CALLBACK(on_find_button_clicked),NULL);
+	button7 = gtk_toolbar_append_item(GTK_TOOLBAR(toolbar),"生日","谁在这个月生日","Private",birthday_image,G_CALLBACK(on_birthday_button_clicked),NULL);
 	//增加间距
 	labelj = gtk_label_new("   ");
 	gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar),labelj,"This is just an space","Private");
